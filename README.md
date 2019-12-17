@@ -2,7 +2,7 @@
 
 > An electron-vue project
 
-#### Build Setup
+#### Build Setup1
 
 ``` bash
 # install dependencies
