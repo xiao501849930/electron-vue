@@ -119,6 +119,7 @@ function autoUpdate() {
     // 可以手动选择是否立即退出并更新
     ipcMain.on('isUpdateNow', (e, arg) => {
       // some code here to handle event
+
       autoUpdater.quitAndInstall()
     })
 })
@@ -138,7 +139,7 @@ function autoUpdate() {
 
 
 app.on('ready', () => {
+
   autoUpdate()
-  autoUpdater.checkForUpdatesAndNotify()
 })
 
