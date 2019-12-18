@@ -37,10 +37,17 @@
     components: { SystemInformation },
     methods: {
       open (link) {
-        this.$electron.shell.openExternal(link)
+        // this.$electron.shell.openExternal(link)
+        this.$electron.ipcRenderer.on('updateMessage', (event, msg) => {
+          alert(JSON.stringify(msg));
+        });
+        this.$electron.ipcRenderer.send('checkForUpdate');
+        this.$electron.ipcRenderer.send('downloadUpdate');
       }
     }
   }
+
+
 </script>
 
 <style>
