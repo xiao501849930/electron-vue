@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+        <script>
+            (function($) {
+                $.fn.imageLens = function(options) {
+                    var defaults = {
+                        lensSize: 100,
+                        borderSize: 4,
+                        borderColor: "#888"
+                    };
+                    var options = $.extend(defaults, options);
+                    var lensStyle = "background-position: 0px 0px;transform: scale(1.5);width: " + String(options.lensSize) + "px;height: " + String(options.lensSize) + "px;float: left;display: none;border-radius: " + String(options.lensSize / 2 + options.borderSize) + "px;border: " + String(options.borderSize) + "px solid " + options.borderColor + ";background-repeat: no-repeat;position: absolute;";
+                    return this.each(function() {
+                        obj = $(this);
+                        var offset = $(this).offset();
+                        var target = $("<div style='" + lensStyle + "' class='" + options.lensCss + "'>&nbsp;</div>").appendTo($(this).parent());
+                        var targetSize = target.size();
+                        var imageSrc = options.imageSrc ? options.imageSrc: $(this).attr("src");
+                        var imageTag = "<img style='display:none;' src='" + imageSrc + "' />";
+                        var widthRatio = 0;
+                        var heightRatio = 0;
+                        $(imageTag).load(function() {
+                            widthRatio = $(this).width() / obj.width();
+                            heightRatio = $(this).height() / obj.height();
+                        }).appendTo($(this).parent());
+                        target.css({
+                            backgroundImage: "url('" + imageSrc + "')"
+                        });
+                        target.mousemove(setPosition);
+                        $(this).mousemove(setPosition);
+                        function setPosition(e) {
+                            var leftPos = parseInt(e.pageX - offset.left);
+                            var topPos = parseInt(e.pageY - offset.top);
+                            if (leftPos < 0 || topPos < 0 || leftPos > obj.width() || topPos > obj.height()) {
+                                target.hide();
+                            } else {
+                                target.show();
+                                leftPos = String(((e.pageX - offset.left) * widthRatio - target.width() / 2) * ( - 1));
+                                topPos = String(((e.pageY - offset.top) * heightRatio - target.height() / 2) * ( - 1));
+                                target.css({
+                                    backgroundPosition: leftPos + 'px ' + topPos + 'px'
+                                });
+                                leftPos = String(e.pageX - target.width() / 2);
+                                topPos = String(e.pageY - target.height() / 2);
+                                target.css({
+                                    left: leftPos + 'px',
+                                    top: topPos + 'px'
+                                });
+                            }
+                        }
+                    });
+                };
+            })(jQuery);
+
+            const electron = require('electron')
+            const desktopCapturer = electron.desktopCapturer
+            const electronScreen = electron.screen
+            const shell = electron.shell
+
+            const os = require('os')
+            const path = require('path')
+
+            const screenshot = document.getElementById('screen-shot')
+
+            const thumbSize = determineScreenShotSize()
+            let options = { types: ['screen'], thumbnailSize: thumbSize }
+
+
+            desktopCapturer.getSources(options, function (error, sources) {
+                if (error) return console.log(error)
+
+                sources.forEach(function (source) {
+                    if (source.name === 'Entire screen' || source.name === 'Screen 1') {
+                        // document.querySelector('img').src = source.thumbnail.toDataURL();
+                    }
+                })
+            })
+
+            setTimeout(function () {
+                $("#body").mousemove(function (e) {
+                    // $("#kk").offset({top:e.pageY,left:e.pageX})
+                });
+            },1000)
+
+
+            setTimeout(function () {
+                desktopCapturer.getSources(options, function (error, sources) {
+                    if (error) return console.log(error)
+
+                    sources.forEach(function (source) {
+                        if (source.name === 'Entire screen' || source.name === 'Screen 1') {
+                            // $("#img").css("background-image","url("+source.thumbnail.toDataURL()+")")
+                            $("#img").attr("src",source.thumbnail.toDataURL());
+                            // document.querySelector('img').src = source.thumbnail.toDataURL();
+                            $("#img").imageLens({ lensSize: 300 });
+                            /*fs.writeFile(screenshotPath, source.thumbnail.toPNG(), function (error) {
+                              if (error) return console.log(error)
+                              shell.openExternal('file://' + screenshotPath)
+                              const message = `截图保存到: ${screenshotPath}`
+                              screenshotMsg.textContent = message
+                            })*/
+                        }
+                    })
+                })
+
+            },5000)
+
+
+
+            function determineScreenShotSize () {
+                const screenSize = electronScreen.getPrimaryDisplay().workAreaSize
+                const maxDimension = Math.max(screenSize.width, screenSize.height)
+                return {
+                    width: maxDimension * window.devicePixelRatio,
+                    height: maxDimension * window.devicePixelRatio
+                }
+            }
+        </script>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            -webkit-scrollbar {
+                display: none;
+            }
+            body { margin: 0px; font-family: "Trebuchet MS", Arial, Sans-Serif; font-size: 14px;overflow-x: hidden;
+                overflow-y: hidden; }
+            a { color: #0066CC; text-decoration: none; }
+            a:hover { color: #CC0000; text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <img  src=""  id="img">
+    </body>
+</html>

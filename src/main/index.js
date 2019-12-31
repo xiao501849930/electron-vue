@@ -1,4 +1,4 @@
-import { app,ipcMain,  BrowserWindow } from 'electron'
+import { app,ipcMain,  BrowserWindow ,screen } from 'electron'
 
 /**
  * Set `__static` path to static files in production
@@ -13,22 +13,80 @@ const winURL = process.env.NODE_ENV === 'development'
   ? `http://localhost:9080`
   : `file://${__dirname}/index.html`
 
+
+
 function createWindow () {
+  let size = screen.getPrimaryDisplay().workAreaSize
+  let screenwidth = parseInt(size.width)
+  let screenheight = parseInt(size.height )
+
+
   /**
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    height: 563,
-    useContentSize: true,
-    width: 1000
+    x:screenwidth-240,
+    y:screenheight-240,
+    frame: false,
+    width:240,
+    height:240,
+    transparent: true,
+    webPreferences:{
+      devTools:false
+    },
+    alwaysOnTop:true,
+    skipTaskbar:true
   })
-
   mainWindow.loadURL(winURL)
+
 
   mainWindow.on('closed', () => {
     mainWindow = null
   })
 }
+
+// 放大镜
+let zoom;
+ipcMain.on('zoom',()=>{
+  zoom = new BrowserWindow({
+    fullscreen:true,
+    frame: false,
+    transparent: true,
+    webPreferences:{
+      devTools:false
+    }
+  })
+
+  zoom.loadURL(`file://${__static}/zoom.html`);
+  zoom.on('closed',()=>{zoom = null})
+})
+
+ipcMain.on('zoomClose',()=> {
+  zoom.close();
+})
+
+let moveInter;
+ipcMain.on('moveWindow',()=> {
+  var point = screen.getCursorScreenPoint();
+  var mx = point.x;
+  var my = point.y;
+
+  moveInter = setInterval(function () {
+    point = screen.getCursorScreenPoint();
+    var movex = point.x - mx;
+    var movey = point.y - my;
+    mx = point.x;
+    my = point.y;
+    var position = mainWindow.getPosition();
+    console.log(position[0] + movex)
+    mainWindow.setPosition(position[0] + movex,position[1] + movey,true)
+  },10)
+})
+
+
+ipcMain.on('stopWindow',()=> {
+  clearInterval(moveInter);
+})
 
 app.on('ready', createWindow)
 
@@ -43,6 +101,9 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+
+
 
 /**
  * Auto Updater
